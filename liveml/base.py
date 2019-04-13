@@ -1,5 +1,5 @@
 import abc
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Generator
 import numpy as np
 import cv2
 
@@ -19,7 +19,7 @@ class _BaseDetector(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _run_inference(self, image):
+    def _run_inference(self, image: np.ndarray):
         pass
 
     @abc.abstractmethod
@@ -31,7 +31,7 @@ class _BaseDetector(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _visualize(self, image, detections):
+    def _visualize(self, image: np.ndarray, detections: dict):
         pass
 
     @abc.abstractmethod
@@ -41,10 +41,10 @@ class _BaseDetector(abc.ABC):
 
 class BaseDetector(_BaseDetector):
 
-    def __init__(self, model_image_size: Optional[Tuple[int, int]] = None):
+    def __init__(self, model_image_size: Optional[Tuple[int, int]] = None) -> None:
         self._model_image_size = model_image_size
 
-    def _resize_image(self, image):
+    def _resize_image(self, image: np.ndarray) -> np.ndarray:
         if self._model_image_size is not None:
             image = cv2.resize(image, self._model_image_size, cv2.INTER_AREA)
         return image
@@ -55,21 +55,21 @@ class BaseDetector(_BaseDetector):
     def close_session(self):
         pass
 
-    def _run_inference(self, image):
-        return []
+    def _run_inference(self, image: np.ndarray) -> dict:
+        return {}
 
-    def _detect_on_image(self, image: np.ndarray):
+    def _detect_on_image(self, image: np.ndarray) -> dict:
         resized_image = self._resize_image(image)
         return self._run_inference(resized_image)
 
-    def detect_on_images(self, *images):
+    def detect_on_images(self, *images: List[np.ndarray]) -> Generator:
         for image in images:
             yield self._detect_on_image(image)
 
-    def _visualize(self, image, detections):
+    def _visualize(self, image: np.ndarray, detections: dict) -> np.ndarray:
         return image
 
-    def visualize_detection_on_images(self, *images: List[np.ndarray]):
+    def visualize_detection_on_images(self, *images: List[np.ndarray]) -> Generator:
         for image in images:
             detection = self._detect_on_image(image)
             yield self._visualize(image, detection)

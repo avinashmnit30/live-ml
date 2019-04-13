@@ -5,7 +5,6 @@ from object_detection.utils import visualization_utils as vis_util
 from object_detection.utils import ops as utils_ops
 import numpy as np
 
-
 # local imports
 from ...base import BaseDetector
 
@@ -14,10 +13,10 @@ class Detector(BaseDetector):
 
     def __init__(
             self,
-            model_path,
-            labels_path,
+            model_path: str,
+            labels_path: str,
             min_score_threshold: int = 0.5
-    ):
+    ) -> None:
         super().__init__()
         self._model_path = model_path
         self._category_index = label_map_util.create_category_index_from_labelmap(labels_path,
@@ -28,7 +27,7 @@ class Detector(BaseDetector):
         self._image_tensor = None
         self._min_score_threshold = min_score_threshold
 
-    def _init_model(self):
+    def _init_model(self) -> None:
         # Load a (frozen) Tensorflow model into memory.
         detection_graph = tf.Graph()
         with detection_graph.as_default():
@@ -40,7 +39,7 @@ class Detector(BaseDetector):
 
         self._detection_graph = detection_graph
 
-    def init_session(self):
+    def init_session(self) -> None:
         self._init_model()
         with self._detection_graph.as_default():
             self._session = tf.Session()
@@ -78,10 +77,10 @@ class Detector(BaseDetector):
                 self._tensor_dict = tensor_dict
                 self._image_tensor = image_tensor
 
-    def close_session(self):
+    def close_session(self) -> None:
         self._session.close()
 
-    def _run_inference(self, image):
+    def _run_inference(self, image: np.ndarray) -> dict:
         # Run inference
         output_dict = self._session.run(self._tensor_dict,
                                         feed_dict = {self._image_tensor: np.expand_dims(image, 0)})
@@ -97,7 +96,7 @@ class Detector(BaseDetector):
             output_dict['detection_masks'] = output_dict['detection_masks'][0]
         return output_dict
 
-    def _visualize(self, image, detections):
+    def _visualize(self, image: np.ndarray, detections: dict) -> np.ndarray:
         # Visualization of the results of a detection.
         result_image = image.copy()
         vis_util.visualize_boxes_and_labels_on_image_array(
